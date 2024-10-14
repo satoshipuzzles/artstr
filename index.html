@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nostr Media Manager</title>
+  <!-- Include Nostr Tools -->
+  <script src="https://unpkg.com/nostr-tools@1.7.1/lib/nostr.bundle.js"></script>
+  <!-- Include SortableJS for drag-and-drop -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <!-- Include Bech32 Library -->
+  <script src="https://cdn.jsdelivr.net/npm/bech32@1.1.4/index.min.js"></script>
+  <style>
+    /* CSS Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Root Variables for Easy Theming */
+    :root {
+      --header-bg-color: #1e1e1e;
+      --header-text-color: #fff;
+      --button-bg-color: #333;
+      --button-text-color: #fff;
+      --button-hover-bg-color: #555;
+      --background-color: #121212;
+      --content-bg-color: #1c1c1c;
+      --input-bg-color: #333;
+      --input-text-color: #fff;
+      --upload-success-color: #28a745;
+      --upload-error-color: #dc3545;
+      --border-radius: 8px;
+      --transition-speed: 0.3s;
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --link-color: #b0b0b0;
+      --copy-btn-bg-color: #444;
+      --copy-btn-hover-bg-color: #666;
+      --loader-color: #555;
+      --thumbnail-border-color: #555;
+      --remove-btn-bg-color: rgba(0, 0, 0, 0.7);
+      --remove-btn-hover-bg-color: rgba(255, 0, 0, 0.8);
+      --toast-bg-color: rgba(0, 0, 0, 0.8);
+      --toast-text-color: #fff;
+      --toast-border-radius: 4px;
+      --toast-padding: 10px 20px;
+      --toast-font-size: 14px;
+      --toast-margin: 10px;
+      --drag-drop-bg-color: rgba(255, 255, 255, 0.1);
+      --drag-drop-border-color: #555;
+      --drag-drop-hover-bg-color: rgba(255, 255, 255, 0.2);
+      --tab-bg-color: #1e1e1e;
+      --tab-text-color: #fff;
+      --tab-active-bg-color: #333;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background-color);
+      color: var(--header-text-color);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Styling */
+    header {
+      width: 100%;
+      background-color: var(--header-bg-color);
+      color: var(--header-text-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background-color: var(--tab-bg-color);
+      color: var(--tab-text-color);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+    }
+
+    .tab.active {
+      background-color: var(--tab-active-bg-color);
+    }
+
+    .tab:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    /* Profile Picture / Login Button */
+    #loginButton {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--input-bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background-color var(--transition-speed);
+    }
+
+    #loginButton:hover {
+      background-color: #444;
+    }
+
+    #loginButton img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    #robotEmoji {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    /* Hidden Class */
+    .hidden {
+      display: none;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      margin-top: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-color: var(--background-color);
+      overflow-y: auto;
+    }
+
+    /* Content Sections */
+    .content-section {
+      width: 100%;
+      max-width: 800px;
+      background-color: var(--content-bg-color);
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 10px var(--shadow-color);
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* Common Styles */
+    h2 {
+      margin-bottom: 20px;
+      color: var(--header-text-color);
+      text-align: center;
+    }
+
+    /* Styled File Input */
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .file-input {
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      user-select: none;
+    }
+
+    .file-input-label:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    /* Drag-and-Drop Area */
+    .drag-drop-area {
+      border: 2px dashed var(--drag-drop-border-color);
+      border-radius: var(--border-radius);
+      padding: 30px;
+      background-color: var(--drag-drop-bg-color);
+      transition: background-color var(--transition-speed);
+      cursor: pointer;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--header-text-color);
+      font-size: 16px;
+    }
+
+    .drag-drop-area.dragover {
+      background-color: var(--drag-drop-hover-bg-color);
+    }
+
+    /* Upload Button */
+    #uploadButton {
+      padding: 12px 25px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    #uploadButton:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    /* Status Message */
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    /* Loading Animation */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--loader-color);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Upload Result */
+    .upload-result {
+      margin-top: 20px;
+      word-break: break-all;
+      font-size: 14px;
+      color: var(--link-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .upload-result a {
+      color: var(--link-color);
+      text-decoration: none;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .upload-result a:hover {
+      text-decoration: underline;
+    }
+
+    /* Copy Link Button */
+    .copy-btn {
+      display: inline-block;
+      padding: 8px 15px;
+      background-color: var(--copy-btn-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      font-size: 14px;
+    }
+
+    .copy-btn:hover {
+      background-color: var(--copy-btn-hover-bg-color);
+    }
+
+    /* Image Preview */
+    #mediaPreview {
+      margin-top: 20px;
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 5px var(--shadow-color);
+      display: none;
+      object-fit: cover;
+    }
+
+    /* Media Display Section */
+    .uploaded-media-item {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .uploaded-media-item img,
+    .uploaded-media-item video,
+    .uploaded-media-item audio {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 5px var(--shadow-color);
+      margin-bottom: 10px;
+    }
+
+    /* Thumbnail Section */
+    .thumbnails {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .thumbnail {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border: 2px solid var(--thumbnail-border-color);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 2px 5px var(--shadow-color);
+    }
+
+    .thumbnail img,
+    .thumbnail video,
+    .thumbnail audio {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background-color: var(--remove-btn-bg-color);
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color var(--transition-speed);
+      font-size: 14px;
+    }
+
+    .remove-btn:hover {
+      background-color: var(--remove-btn-hover-bg-color);
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background-color: var(--toast-bg-color);
+      color: var(--toast-text-color);
+      padding: var(--toast-padding);
+      border-radius: var(--toast-border-radius);
+      font-size: var(--toast-font-size);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      opacity: 0;
+      animation: fadeIn 0.5s forwards, fadeOut 0.5s 2.5s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; }
+    }
+
+    /* Focus Styles for Accessibility */
+    button:focus, .file-input-label:focus, .drag-drop-area:focus {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    /* Modern Button Styles */
+    button {
+      padding: 10px 20px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    /* Additional Styles for My Uploads */
+    .uploads-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .upload-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: var(--input-bg-color);
+      border-radius: var(--border-radius);
+      position: relative;
+    }
+
+    .upload-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-right: 20px;
+    }
+
+    .upload-item textarea {
+      flex: 1;
+      background-color: transparent;
+      color: var(--input-text-color);
+      border: none;
+      outline: none;
+      resize: none;
+      height: 80px;
+    }
+
+    .upload-item button {
+      margin-left: 10px;
+    }
+
+    .upload-item .media-checkbox {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Styles for Marketplace */
+    .collection {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: var(--input-bg-color);
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 5px var(--shadow-color);
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+    }
+
+    .collection:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    .collection h3 {
+      margin-bottom: 10px;
+    }
+
+    .collection img {
+      width: 100%;
+      height: auto;
+      border-radius: var(--border-radius);
+    }
+
+    .collection-author {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .collection-author img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    /* Collection Editor */
+    .collection-editor {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: var(--input-bg-color);
+      border-radius: var(--border-radius);
+    }
+
+    .collection-editor input,
+    .collection-editor textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: var(--content-bg-color);
+      color: var(--input-text-color);
+      border: none;
+      border-radius: var(--border-radius);
+    }
+
+    /* Collection View */
+    #collectionView {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 20px;
+    }
+
+    .collection-grid img,
+    .collection-grid video,
+    .collection-grid audio {
+      width: 100%;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+
+    /* Fullscreen Popup */
+    .fullscreen-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+
+    .fullscreen-popup img,
+    .fullscreen-popup video,
+    .fullscreen-popup audio {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: var(--border-radius);
+    }
+
+    .close-popup {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 30px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* Drag Handle */
+    .drag-handle {
+      cursor: grab;
+      margin-right: 10px;
+      font-size: 24px;
+      color: var(--header-text-color);
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    /* Styles for Collection Items in My Uploads */
+    .collection-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: var(--input-bg-color);
+      border-radius: var(--border-radius);
+      position: relative;
+    }
+
+    .collection-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-right: 20px;
+    }
+
+    .collection-item .collection-info {
+      flex: 1;
+    }
+
+    .collection-item button {
+      margin-left: 10px;
+    }
+
+    /* Collection Media Items */
+    .collection-media-item {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border: 2px solid var(--thumbnail-border-color);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 2px 5px var(--shadow-color);
+      margin: 5px;
+    }
+
+    .collection-media-item img,
+    .collection-media-item video,
+    .collection-media-item audio {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .collection-media-item .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background-color: var(--remove-btn-bg-color);
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color var(--transition-speed);
+      font-size: 14px;
+    }
+
+    .collection-media-item .remove-btn:hover {
+      background-color: var(--remove-btn-hover-bg-color);
+    }
+
+    /* Color Picker Styles */
+    .color-picker {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .color-picker label {
+      margin-right: 10px;
+      width: 150px;
+    }
+
+    .color-picker input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      background: none;
+    }
+
+    /* Customization in Collection View */
+    #collectionView.customized {
+      background-color: var(--custom-background-color);
+      color: var(--custom-text-color);
+    }
+
+    #collectionView.customized button {
+      background-color: var(--custom-button-color);
+    }
+
+    /* Chat Styles */
+    .chat-container {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 20px;
+      background-color: var(--content-bg-color);
+      padding: 20px;
+      border-radius: var(--border-radius);
+    }
+
+    .chat-messages {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .chat-message img.author-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .chat-message-content {
+      max-width: 80%;
+    }
+
+    .chat-message-content img {
+      max-width: 100%;
+      border-radius: var(--border-radius);
+      margin-top: 5px;
+    }
+
+    .chat-message-content a {
+      color: var(--link-color);
+    }
+
+    .chat-input-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .chat-input-container textarea {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--border-radius);
+      background-color: var(--input-bg-color);
+      color: var(--input-text-color);
+      border: none;
+      resize: none;
+      height: 50px;
+      margin-right: 10px;
+    }
+
+    .chat-input-container button {
+      padding: 10px 20px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .upload-section {
+        padding: 20px;
+      }
+
+      #loginButton {
+        width: 40px;
+        height: 40px;
+      }
+
+      #robotEmoji {
+        font-size: 20px;
+      }
+
+      .file-input-label, #uploadButton, .copy-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+
+      #mediaPreview {
+        max-height: 100px;
+      }
+
+      .uploaded-media-item img,
+      .uploaded-media-item video,
+      .uploaded-media-item audio {
+        max-height: 200px;
+      }
+
+      .thumbnail {
+        width: 80px;
+        height: 80px;
+      }
+
+      .drag-drop-area {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header>
+    <!-- Tabs -->
+    <div class="tabs" id="tabsContainer">
+      <div class="tab active" data-tab="upload">Upload</div>
+      <div class="tab" data-tab="my-uploads">My Uploads</div>
+      <div class="tab" data-tab="marketplace">Marketplace</div>
+    </div>
+
+    <!-- Login button with robot emoji initially -->
+    <div id="loginButton" tabindex="0" aria-label="Login">
+      <span id="robotEmoji">ðŸ¤–</span>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <!-- Upload Section -->
+    <div class="content-section active" id="uploadSection">
+      <h2>Upload Your Media</h2>
+      
+      <!-- Drag-and-Drop Area -->
+      <div class="drag-drop-area" id="dragDropArea" tabindex="0" aria-label="Drag and drop files here or click to select">
+        Drag & Drop Files Here or Click to Select
+      </div>
+      
+      <!-- Styled File Input -->
+      <div class="file-input-wrapper">
+        <label class="file-input-label" for="mediaInput" tabindex="0">Choose Files</label>
+        <input type="file" id="mediaInput" class="file-input" accept="image/*,video/*,audio/*" multiple>
+      </div>
+      
+      <!-- Upload Button -->
+      <button id="uploadButton" aria-label="Upload Media">Upload Media</button>
+      
+      <!-- Status Message -->
+      <div id="status"></div>
+      
+      <!-- Thumbnails of Selected Files -->
+      <div class="thumbnails" id="thumbnailsContainer"></div>
+      
+      <!-- Upload Result -->
+      <div class="upload-result" id="uploadResult"></div>
+      
+      <!-- Image/Media Preview -->
+      <img id="mediaPreview" src="" alt="Media Preview">
+      
+      <!-- Container for Uploaded Media -->
+      <div class="uploaded-media-item" id="uploadedMediaContainer"></div>
+    </div>
+
+    <!-- My Uploads Section -->
+    <div class="content-section" id="my-uploadsSection">
+      <h2>My Uploads</h2>
+      <!-- Container for User's Uploaded Media -->
+      <div class="uploads-container" id="uploadsContainer"></div>
+      <!-- Container for User's Collections -->
+      <h2>My Collections</h2>
+      <div class="collections-container" id="myCollectionsContainer"></div>
+      <!-- Buttons Container -->
+      <div id="buttonsContainer" style="margin-top: 20px;">
+        <!-- Save Button -->
+        <button id="saveUploadsButton" aria-label="Save Uploads" class="hidden">Save Changes</button>
+        <!-- Create Collection Button -->
+        <button id="createCollectionButton" aria-label="Create Collection">Create New Collection</button>
+      </div>
+      <!-- Collection Editor -->
+      <div class="collection-editor hidden" id="collectionEditor">
+        <h3 id="collectionEditorTitle">Create Collection</h3>
+        <input type="text" id="collectionName" placeholder="Collection Name">
+        <input type="text" id="collectionThumbnail" placeholder="Thumbnail URL">
+        <input type="text" id="collectionPageUrl" placeholder="Page URL (e.g., my-art)">
+        <input type="text" id="collectionPageTitle" placeholder="Page H1 Title">
+        <textarea id="collectionAbout" placeholder="About Section (H2)"></textarea>
+        <!-- Color Pickers -->
+        <div class="color-picker">
+          <label for="textColor">Text Color:</label>
+          <input type="color" id="textColor" value="#ffffff">
+        </div>
+        <div class="color-picker">
+          <label for="backgroundColor">Background Color:</label>
+          <input type="color" id="backgroundColor" value="#121212">
+        </div>
+        <div class="color-picker">
+          <label for="buttonColor">Button Color:</label>
+          <input type="color" id="buttonColor" value="#333333">
+        </div>
+        <!-- Media Items in Collection -->
+        <h4>Media in Collection</h4>
+        <div id="collectionMediaContainer"></div>
+        <!-- Save and Cancel Buttons -->
+        <button id="saveCollectionButton">Save Collection</button>
+        <button id="cancelCollectionButton">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Marketplace Section -->
+    <div class="content-section" id="marketplaceSection">
+      <h2>Marketplace</h2>
+      <!-- Container for Collections -->
+      <div id="collectionsContainer"></div>
+    </div>
+
+    <!-- Collection View Section -->
+    <div id="collectionView">
+      <h1 id="collectionTitle"></h1>
+      <h2 id="collectionAboutSection"></h2>
+      <div id="collectionAuthor"></div>
+      <div class="collection-grid" id="collectionGrid"></div>
+
+      <!-- Chat Container -->
+      <div class="chat-container" id="chatContainer">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-container">
+          <textarea id="chatInput" placeholder="Type your message here..."></textarea>
+          <button id="sendChatButton">Send</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Fullscreen Popup -->
+  <div class="fullscreen-popup" id="fullscreenPopup">
+    <span class="close-popup" id="closePopup">&times;</span>
+    <div id="popupContent"></div>
+  </div>
+
+  <script>
+    // Ensure Nostr Tools are available
+    if (!window.nostrTools) {
+      window.nostrTools = window;
+    }
+
+    // Constants and Variables
+    const loginButton = document.getElementById('loginButton');
+    const robotEmoji = document.getElementById('robotEmoji');
+    const mediaInput = document.getElementById('mediaInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const status = document.getElementById('status');
+    const uploadResult = document.getElementById('uploadResult');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const uploadedMediaContainer = document.getElementById('uploadedMediaContainer');
+    const thumbnailsContainer = document.getElementById('thumbnailsContainer');
+    const dragDropArea = document.getElementById('dragDropArea');
+    const toastContainer = document.getElementById('toastContainer');
+    const tabs = document.querySelectorAll('.tab');
+    const contentSections = document.querySelectorAll('.content-section');
+    const uploadsContainer = document.getElementById('uploadsContainer');
+    const saveUploadsButton = document.getElementById('saveUploadsButton');
+    const createCollectionButton = document.getElementById('createCollectionButton');
+    const collectionsContainer = document.getElementById('collectionsContainer');
+    const buttonsContainer = document.getElementById('buttonsContainer');
+    const collectionEditor = document.getElementById('collectionEditor');
+    const collectionNameInput = document.getElementById('collectionName');
+    const collectionThumbnailInput = document.getElementById('collectionThumbnail');
+    const collectionDescriptionInput = document.getElementById('collectionDescription');
+    const saveCollectionButton = document.getElementById('saveCollectionButton');
+    const cancelCollectionButton = document.getElementById('cancelCollectionButton');
+    const mainContent = document.getElementById('mainContent');
+    const collectionView = document.getElementById('collectionView');
+    const collectionTitle = document.getElementById('collectionTitle');
+    const collectionAuthor = document.getElementById('collectionAuthor');
+    const collectionGrid = document.getElementById('collectionGrid');
+    const fullscreenPopup = document.getElementById('fullscreenPopup');
+    const closePopup = document.getElementById('closePopup');
+    const popupContent = document.getElementById('popupContent');
+    const tabsContainer = document.getElementById('tabsContainer');
+    const myCollectionsContainer = document.getElementById('myCollectionsContainer');
+    const collectionPageUrlInput = document.getElementById('collectionPageUrl');
+    const collectionPageTitleInput = document.getElementById('collectionPageTitle');
+    const collectionAboutInput = document.getElementById('collectionAbout');
+    const textColorInput = document.getElementById('textColor');
+    const backgroundColorInput = document.getElementById('backgroundColor');
+    const buttonColorInput = document.getElementById('buttonColor');
+    const collectionEditorTitle = document.getElementById('collectionEditorTitle');
+    const collectionMediaContainer = document.getElementById('collectionMediaContainer');
+    const collectionAboutSection = document.getElementById('collectionAboutSection');
+
+    // Variables for the chat feature
+    const chatContainer = document.getElementById('chatContainer');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendChatButton = document.getElementById('sendChatButton');
+
+    let publicKey = '';
+    let privateKey = '';
+    let userProfile = {};
+    let selectedFiles = [];
+    let uploadedMedia = []; // Array of {url, description}
+    let myUploadsSortable;
+    let relay;
+    let existingEventId = null; // To store the ID of the existing kind 36936 event
+    let hasUnsavedChanges = false; // Flag to track unsaved changes
+    let selectedMediaForCollection = []; // Media selected for collection
+    let collections = []; // Array to store fetched collections
+    let myCollections = []; // Array to store user's collections
+    let collectionEditorSortable;
+    let currentCollectionEventId = null; // To store the event ID of the currently viewed collection
+    const relaySubscriptions = {};
+
+    // Initialize Relay
+    function initRelay() {
+      relay = new WebSocket('wss://relay.damus.io'); // Use a reliable relay
+      relay.onopen = () => {
+        console.log('Connected to relay');
+        // Fetch data after ensuring relay is open
+        fetchMyUploads();
+        fetchMyCollections();
+      };
+      relay.onerror = (error) => {
+        console.error('Relay error:', error);
+      };
+      relay.onclose = () => {
+        console.log('Relay connection closed');
+      };
+
+      // Relay Message Handler
+      relay.onmessage = async (event) => {
+        console.log('Received from relay:', event.data); // Log received data
+        const data = JSON.parse(event.data);
+        if (data[0] === 'EVENT') {
+          const subscriptionId = data[1];
+          const messageEvent = data[2];
+
+          if (relaySubscriptions[subscriptionId] && typeof relaySubscriptions[subscriptionId] === 'function') {
+            await relaySubscriptions[subscriptionId](messageEvent);
+          }
+        } else if (data[0] === 'EOSE') {
+          const subscriptionId = data[1];
+          console.log(`End of stored events for subscription ${subscriptionId}`);
+          // Optionally, close the subscription
+          relay.send(JSON.stringify(['CLOSE', subscriptionId]));
+        } else if (data[0] === 'NOTICE') {
+          console.warn('Relay notice:', data[1]);
+        }
+      };
+    }
+
+    // Function to display toast notifications
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.classList.add('toast');
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+
+      // Remove the toast after animation
+      toast.addEventListener('animationend', (event) => {
+        if (event.animationName === 'fadeOut') {
+          toast.remove();
+        }
+      });
+    }
+
+    // Persist User Login Across Refreshes
+    document.addEventListener('DOMContentLoaded', () => {
+      const storedPublicKey = localStorage.getItem('publicKey');
+      if (storedPublicKey) {
+        publicKey = storedPublicKey;
+        initAfterLogin();
+      }
+    });
+
+    // Modify the login function to store public key
+    async function loginWithNIP07() {
+      try {
+        if (window.nostr) {
+          publicKey = await window.nostr.getPublicKey();
+          localStorage.setItem('publicKey', publicKey);
+          initAfterLogin();
+        } else {
+          showToast("Please install a Nostr extension (e.g., Alby) to log in.");
+        }
+      } catch (error) {
+        console.error('Login failed:', error);
+        showToast("Failed to log in. Please try again.");
+      }
+    }
+
+    // Function to initialize after login or page refresh
+    function initAfterLogin() {
+      // Fetch user's profile and initialize relay
+      // Update the UI to reflect logged-in state
+      // Fetch user's profile from relay
+      const tempRelay = new WebSocket('wss://relay.damus.io');
+
+      tempRelay.onopen = () => {
+        // Request kind 0 data (user profile)
+        const request = JSON.stringify([
+          "REQ",
+          "1",
+          {
+            kinds: [0],
+            authors: [publicKey]
+          }
+        ]);
+        tempRelay.send(request);
+      };
+
+      tempRelay.onmessage = (event) => {
+        const response = JSON.parse(event.data);
+        if (response && response[2]) {
+          userProfile = JSON.parse(response[2].content);
+          // If profile has a picture, display it
+          if (userProfile.picture) {
+            robotEmoji.classList.add('hidden');
+            robotEmoji.remove();
+
+            const img = document.createElement('img');
+            img.src = userProfile.picture;
+            img.alt = "Profile Picture";
+            img.loading = 'lazy';
+            img.onload = () => {
+              img.style.width = '100%';
+              img.style.height = '100%';
+            };
+            loginButton.appendChild(img);
+
+            // Disable further clicks on the login button
+            loginButton.style.cursor = 'default';
+            loginButton.setAttribute('aria-label', 'Logged In');
+            loginButton.removeEventListener('click', loginWithNIP07);
+          }
+
+          // After fetching profile, initialize relay
+          initRelay();
+        }
+      };
+    }
+
+    // Trigger login on click
+    loginButton.addEventListener('click', loginWithNIP07);
+
+    // Tab Navigation
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        contentSections.forEach(section => {
+          section.classList.remove('active');
+        });
+
+        const activeSection = document.getElementById(`${tab.dataset.tab}Section`);
+        activeSection.classList.add('active');
+
+        // Hide collection view if visible
+        collectionView.style.display = 'none';
+
+        // Update URL
+        history.pushState({}, '', '/');
+
+        // If My Uploads tab is activated, initialize Sortable
+        if (tab.dataset.tab === 'my-uploads' && !myUploadsSortable) {
+          initSortable();
+        }
+
+        // If Marketplace tab is activated, fetch collections
+        if (tab.dataset.tab === 'marketplace') {
+          fetchMarketplaceCollections();
+        }
+      });
+    });
+
+    // Function to initialize SortableJS on My Uploads
+    function initSortable() {
+      myUploadsSortable = new Sortable(uploadsContainer, {
+        animation: 150,
+        handle: '.drag-handle',
+        onEnd: function (evt) {
+          // Update uploadedMedia array based on new order
+          const items = uploadsContainer.querySelectorAll('.upload-item');
+          uploadedMedia = [];
+          items.forEach(item => {
+            const url = item.getAttribute('data-url');
+            const description = item.querySelector('textarea').value;
+            uploadedMedia.push({ url, description });
+          });
+          showSaveButton();
+        }
+      });
+    }
+
+    // Function to handle Media Selection and Preview via File Input
+    mediaInput.addEventListener('change', () => {
+      const files = Array.from(mediaInput.files);
+      handleFiles(files);
+      mediaInput.value = '';
+    });
+
+    // Function to handle Media Selection and Preview via Drag-and-Drop
+    dragDropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dragDropArea.classList.add('dragover');
+    });
+
+    dragDropArea.addEventListener('dragleave', () => {
+      dragDropArea.classList.remove('dragover');
+    });
+
+    dragDropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragDropArea.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files);
+      handleFiles(files);
+    });
+
+    // Click on Drag-and-Drop Area to Open File Dialog
+    dragDropArea.addEventListener('click', () => {
+      mediaInput.click();
+    });
+
+    // Function to handle files (from input or drag-and-drop)
+    function handleFiles(files) {
+      files.forEach(file => {
+        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified)) {
+          selectedFiles.push(file);
+          displayThumbnail(file);
+        }
+      });
+    }
+
+    // Function to display thumbnail with remove button
+    function displayThumbnail(file) {
+      const thumbnailDiv = document.createElement('div');
+      thumbnailDiv.classList.add('thumbnail');
+
+      let mediaElement;
+      if (file.type.startsWith('image/')) {
+        mediaElement = document.createElement('img');
+        mediaElement.src = URL.createObjectURL(file);
+        mediaElement.alt = 'Selected Image';
+        mediaElement.loading = 'lazy';
+      } else if (file.type.startsWith('video/')) {
+        mediaElement = document.createElement('video');
+        mediaElement.src = URL.createObjectURL(file);
+        mediaElement.alt = 'Selected Video';
+        mediaElement.muted = true;
+        mediaElement.loop = true;
+        mediaElement.autoplay = true;
+        mediaElement.style.objectFit = 'cover';
+        mediaElement.loading = 'lazy';
+      } else if (file.type.startsWith('audio/')) {
+        mediaElement = document.createElement('audio');
+        mediaElement.src = URL.createObjectURL(file);
+        mediaElement.controls = true;
+        mediaElement.style.width = '100%';
+      } else {
+        mediaElement = document.createElement('p');
+        mediaElement.textContent = 'Unsupported media type.';
+        mediaElement.style.color = 'var(--upload-error-color)';
+      }
+
+      thumbnailDiv.appendChild(mediaElement);
+
+      // Create remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.classList.add('remove-btn');
+      removeBtn.innerHTML = '&times;';
+      removeBtn.setAttribute('aria-label', 'Remove file');
+      removeBtn.addEventListener('click', () => {
+        removeFile(file, thumbnailDiv);
+      });
+
+      thumbnailDiv.appendChild(removeBtn);
+
+      thumbnailsContainer.appendChild(thumbnailDiv);
+    }
+
+    // Function to remove file from selection
+    function removeFile(file, thumbnailDiv) {
+      selectedFiles = selectedFiles.filter(f => !(f.name === file.name && f.size === file.size && f.lastModified === file.lastModified));
+      thumbnailsContainer.removeChild(thumbnailDiv);
+      showToast(`Removed "${file.name}" from selection.`);
+    }
+
+    // Function to handle Media Upload
+    uploadButton.addEventListener('click', async () => {
+      if (selectedFiles.length === 0) {
+        showToast('Please select at least one media file.');
+        return;
+      }
+
+      uploadButton.disabled = true;
+      uploadButton.style.cursor = 'not-allowed';
+
+      status.innerHTML = 'Uploading... <span class="loader"></span>';
+      status.style.color = 'var(--header-text-color)';
+
+      thumbnailsContainer.style.display = 'none';
+
+      const fileArray = Array.from(selectedFiles);
+      let currentIndex = 0;
+
+      // Function to upload a single file
+      async function uploadFile(file) {
+        return new Promise(async (resolve) => {
+          const fileContainer = document.createElement('div');
+          fileContainer.classList.add('uploaded-media-item');
+          fileContainer.style.marginTop = '20px';
+          fileContainer.style.width = '100%';
+          fileContainer.style.display = 'flex';
+          fileContainer.style.flexDirection = 'column';
+          fileContainer.style.alignItems = 'center';
+
+          let mediaElement;
+          if (file.type.startsWith('image/')) {
+            mediaElement = document.createElement('img');
+            mediaElement.src = URL.createObjectURL(file);
+            mediaElement.alt = 'Uploaded Image';
+            mediaElement.style.maxWidth = '100%';
+            mediaElement.style.maxHeight = '300px';
+            mediaElement.style.borderRadius = 'var(--border-radius)';
+            mediaElement.style.boxShadow = '0 2px 5px var(--shadow-color)';
+            mediaElement.loading = 'lazy';
+          } else if (file.type.startsWith('video/')) {
+            mediaElement = document.createElement('video');
+            mediaElement.src = URL.createObjectURL(file);
+            mediaElement.controls = true;
+            mediaElement.style.maxWidth = '100%';
+            mediaElement.style.maxHeight = '300px';
+            mediaElement.style.borderRadius = 'var(--border-radius)';
+            mediaElement.style.boxShadow = '0 2px 5px var(--shadow-color)';
+            mediaElement.loading = 'lazy';
+          } else if (file.type.startsWith('audio/')) {
+            mediaElement = document.createElement('audio');
+            mediaElement.src = URL.createObjectURL(file);
+            mediaElement.controls = true;
+            mediaElement.style.width = '100%';
+            mediaElement.style.marginTop = '10px';
+          } else {
+            mediaElement = document.createElement('p');
+            mediaElement.textContent = 'Unsupported media type.';
+            mediaElement.style.color = 'var(--upload-error-color)';
+          }
+
+          fileContainer.appendChild(mediaElement);
+
+          const fileStatus = document.createElement('div');
+          fileStatus.innerHTML = 'Uploading <span class="loader"></span>';
+          fileStatus.style.color = 'var(--header-text-color)';
+          fileStatus.style.marginTop = '10px';
+          fileContainer.appendChild(fileStatus);
+
+          uploadedMediaContainer.appendChild(fileContainer);
+
+          const formData = new FormData();
+          formData.append('file', file);
+
+          try {
+            const response = await fetch('https://nostr.build/api/v2/upload/files', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (!response.ok) {
+              throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+              const fileUrl = result.data[0].url;
+              fileStatus.innerHTML = 'Upload successful!';
+              fileStatus.style.color = 'var(--upload-success-color)';
+
+              // Create link element
+              const linkElement = document.createElement('a');
+              linkElement.href = fileUrl;
+              linkElement.target = '_blank';
+              linkElement.textContent = fileUrl;
+              linkElement.style.color = 'var(--link-color)';
+              linkElement.style.textDecoration = 'none';
+              linkElement.style.wordBreak = 'break-all';
+              linkElement.style.marginTop = '10px';
+
+              // Create copy button
+              const copyButton = document.createElement('button');
+              copyButton.classList.add('copy-btn');
+              copyButton.textContent = 'Copy Link';
+              copyButton.setAttribute('aria-label', 'Copy link');
+              copyButton.style.marginTop = '5px';
+              copyButton.addEventListener('click', () => {
+                copyToClipboard(fileUrl);
+              });
+
+              // Create description input
+              const descriptionInput = document.createElement('textarea');
+              descriptionInput.placeholder = 'Add a description...';
+              descriptionInput.style.marginTop = '10px';
+              descriptionInput.style.width = '100%';
+              descriptionInput.style.borderRadius = 'var(--border-radius)';
+              descriptionInput.style.padding = '10px';
+              descriptionInput.style.backgroundColor = 'var(--input-bg-color)';
+              descriptionInput.style.color = 'var(--input-text-color)';
+              descriptionInput.style.border = '1px solid #444';
+
+              // Create Save button
+              const saveButton = document.createElement('button');
+              saveButton.textContent = 'Save';
+              saveButton.style.marginTop = '10px';
+              saveButton.addEventListener('click', () => {
+                const description = descriptionInput.value.trim();
+                uploadedMedia.push({ url: fileUrl, description });
+                showToast(`Saved "${file.name}" to My Uploads.`);
+                // Update the My Uploads tab
+                displayMyUploads();
+                showSaveButton();
+              });
+
+              fileContainer.appendChild(linkElement);
+              fileContainer.appendChild(copyButton);
+              fileContainer.appendChild(descriptionInput);
+              fileContainer.appendChild(saveButton);
+
+              resolve();
+            } else {
+              throw new Error(result.message || 'Unknown error occurred during upload.');
+            }
+          } catch (error) {
+            console.error('Upload failed:', error);
+            fileStatus.textContent = `Upload failed: ${error.message}`;
+            fileStatus.style.color = 'var(--upload-error-color)';
+            showToast(`Failed to upload "${file.name}".`);
+            resolve();
+          }
+        });
+      }
+
+      async function processQueue() {
+        for (const file of fileArray) {
+          await uploadFile(file);
+          currentIndex++;
+        }
+
+        status.innerHTML = '';
+        uploadButton.disabled = false;
+        uploadButton.style.cursor = 'pointer';
+        selectedFiles = [];
+      }
+
+      processQueue();
+    });
+
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Link copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        showToast('Failed to copy the link.');
+      });
+    }
+
+    // Function to fetch user's existing kind 36936 event (My Uploads)
+    function fetchMyUploads() {
+      const subscriptionId = 'uploads-' + Math.random().toString(36).substring(2);
+      const request = [
+        "REQ",
+        subscriptionId,
+        {
+          kinds: [36936],
+          authors: [publicKey]
+        }
+      ];
+      relay.send(JSON.stringify(request));
+
+      relaySubscriptions[subscriptionId] = (messageEvent) => {
+        console.log('Upload event received:', messageEvent);
+        if (messageEvent.kind === 36936) {
+          existingEventId = messageEvent.id; // Store existing event ID
+          // Parse the tags to get media URLs and descriptions
+          uploadedMedia = [];
+          messageEvent.tags.forEach(tag => {
+            if (tag[0] === 'r') {
+              const url = tag[1];
+              const descriptionTag = messageEvent.tags.find(t => t[0] === 'rd' && t[1] === url);
+              const description = descriptionTag ? descriptionTag[2] : '';
+              uploadedMedia.push({ url, description });
+            }
+          });
+          displayMyUploads();
+        }
+      };
+    }
+
+    // Function to fetch user's collections (kind 36969 events)
+    function fetchMyCollections() {
+      const subscriptionId = 'collections-' + Math.random().toString(36).substring(2);
+      const request = [
+        "REQ",
+        subscriptionId,
+        {
+          kinds: [36969],
+          authors: [publicKey]
+        }
+      ];
+      relay.send(JSON.stringify(request));
+
+      relaySubscriptions[subscriptionId] = (messageEvent) => {
+        console.log('Collection event received:', messageEvent);
+        if (messageEvent.kind === 36969) {
+          const event = messageEvent;
+          myCollections.push(event);
+          displayMyCollections();
+        }
+      };
+    }
+
+    // Function to display My Uploads
+    function displayMyUploads() {
+      uploadsContainer.innerHTML = '';
+      uploadedMedia.forEach(media => {
+        const uploadItem = document.createElement('div');
+        uploadItem.classList.add('upload-item');
+        uploadItem.setAttribute('data-url', media.url);
+
+        // Checkbox for selection
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.classList.add('media-checkbox');
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            selectedMediaForCollection.push(media.url);
+          } else {
+            selectedMediaForCollection = selectedMediaForCollection.filter(url => url !== media.url);
+          }
+        });
+        uploadItem.appendChild(checkbox);
+
+        // Drag Handle
+        const dragHandle = document.createElement('span');
+        dragHandle.classList.add('drag-handle');
+        dragHandle.textContent = 'â˜°';
+        uploadItem.appendChild(dragHandle);
+
+        // Media Thumbnail
+        const img = document.createElement('img');
+        img.src = media.url;
+        uploadItem.appendChild(img);
+
+        // Description Textarea
+        const textarea = document.createElement('textarea');
+        textarea.value = media.description || '';
+        textarea.addEventListener('input', () => {
+          showSaveButton();
+        });
+        textarea.disabled = true; // Initially disabled
+        uploadItem.appendChild(textarea);
+
+        // Edit Button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+          textarea.disabled = !textarea.disabled;
+          if (textarea.disabled) {
+            editButton.textContent = 'Edit';
+            showSaveButton();
+          } else {
+            editButton.textContent = 'Save';
+          }
+        });
+        uploadItem.appendChild(editButton);
+
+        // Delete Button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+          uploadedMedia = uploadedMedia.filter(m => m.url !== media.url);
+          displayMyUploads();
+          showSaveButton();
+        });
+        uploadItem.appendChild(deleteButton);
+
+        uploadsContainer.appendChild(uploadItem);
+      });
+    }
+
+    // Function to display My Collections
+    function displayMyCollections() {
+      myCollectionsContainer.innerHTML = '';
+      myCollections.forEach(event => {
+        const collectionItem = document.createElement('div');
+        collectionItem.classList.add('collection-item');
+
+        // Collection Thumbnail
+        const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
+        const thumbnailUrl = thumbnailTag ? thumbnailTag[1] : '';
+
+        const img = document.createElement('img');
+        img.src = thumbnailUrl || 'default-thumbnail.png';
+        collectionItem.appendChild(img);
+
+        // Collection Info
+        const infoDiv = document.createElement('div');
+        infoDiv.classList.add('collection-info');
+
+        // Collection Name
+        const nameTag = event.tags.find(t => t[0] === 't');
+        const collectionName = nameTag ? nameTag[1] : 'Unnamed Collection';
+
+        const title = document.createElement('h4');
+        title.textContent = collectionName;
+        infoDiv.appendChild(title);
+
+        // Description
+        const description = event.content || '';
+        const descPara = document.createElement('p');
+        descPara.textContent = description;
+        infoDiv.appendChild(descPara);
+
+        collectionItem.appendChild(infoDiv);
+
+        // Edit Button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+          editCollection(event);
+        });
+        collectionItem.appendChild(editButton);
+
+        // Delete Button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+          deleteCollection(event);
+        });
+        collectionItem.appendChild(deleteButton);
+
+        myCollectionsContainer.appendChild(collectionItem);
+      });
+    }
+
+    // Function to edit a collection
+    function editCollection(event) {
+      // Pre-fill the collection editor with existing data
+      const nameTag = event.tags.find(t => t[0] === 't');
+      const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
+      const mediaTags = event.tags.filter(t => t[0] === 'r');
+
+      collectionNameInput.value = nameTag ? nameTag[1] : '';
+      collectionThumbnailInput.value = thumbnailTag ? thumbnailTag[1] : '';
+      collectionDescriptionInput.value = event.content || '';
+
+      // Select the media
+      selectedMediaForCollection = mediaTags.map(t => t[1]);
+      displayCollectionMedia(selectedMediaForCollection);
+
+      // Uncheck all checkboxes
+      const checkboxes = document.querySelectorAll('.media-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
+
+      // Pre-fill the additional settings
+      const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
+      const pageTitleTag = event.tags.find(t => t[0] === 'pageTitle');
+      const aboutTag = event.tags.find(t => t[0] === 'about');
+      const textColorTag = event.tags.find(t => t[0] === 'textColor');
+      const backgroundColorTag = event.tags.find(t => t[0] === 'backgroundColor');
+      const buttonColorTag = event.tags.find(t => t[0] === 'buttonColor');
+
+      collectionPageUrlInput.value = pageUrlTag ? pageUrlTag[1] : '';
+      collectionPageTitleInput.value = pageTitleTag ? pageTitleTag[1] : '';
+      collectionAboutInput.value = aboutTag ? aboutTag[1] : '';
+      textColorInput.value = textColorTag ? textColorTag[1] : '#ffffff';
+      backgroundColorInput.value = backgroundColorTag ? backgroundColorTag[1] : '#121212';
+      buttonColorInput.value = buttonColorTag ? buttonColorTag[1] : '#333333';
+
+      // Show the collection editor
+      collectionEditor.classList.remove('hidden');
+      collectionEditorTitle.textContent = 'Edit Collection';
+      saveCollectionButton.textContent = 'Update Collection';
+
+      // Store the event ID for updating
+      collectionEditor.dataset.eventId = event.id;
+    }
+
+    // Function to delete a collection
+    function deleteCollection(event) {
+      // Remove from myCollections array
+      myCollections = myCollections.filter(e => e.id !== event.id);
+      displayMyCollections();
+
+      // Send a delete event to the relay
+      const deleteEvent = {
+        kind: 5,
+        pubkey: publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['e', event.id]],
+        content: '',
+      };
+
+      signAndSendEvent(deleteEvent)
+        .then(() => {
+          showToast('Collection deleted.');
+        })
+        .catch(error => {
+          console.error('Error deleting collection:', error);
+          showToast('Failed to delete the collection.');
+        });
+    }
+
+    // Display Collection Media Thumbnails
+    function displayCollectionMedia(mediaUrls) {
+      const container = document.getElementById('collectionMediaContainer');
+      container.innerHTML = '';
+      mediaUrls.forEach(url => {
+        const mediaItem = document.createElement('div');
+        mediaItem.classList.add('collection-media-item');
+        mediaItem.setAttribute('data-url', url);
+
+        let mediaElement;
+        if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+          mediaElement = document.createElement('img');
+          mediaElement.src = url;
+        } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+          mediaElement = document.createElement('video');
+          mediaElement.src = url;
+          mediaElement.muted = true;
+          mediaElement.loop = true;
+          mediaElement.autoplay = true;
+        } else if (url.match(/\.(mp3|wav|ogg)$/i)) {
+          mediaElement = document.createElement('audio');
+          mediaElement.src = url;
+          mediaElement.controls = true;
+        } else {
+          mediaElement = document.createElement('p');
+          mediaElement.textContent = 'Unsupported media type.';
+        }
+
+        mediaItem.appendChild(mediaElement);
+
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.classList.add('remove-btn');
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', () => {
+          container.removeChild(mediaItem);
+          selectedMediaForCollection = selectedMediaForCollection.filter(u => u !== url);
+        });
+
+        mediaItem.appendChild(removeBtn);
+        container.appendChild(mediaItem);
+      });
+
+      initCollectionMediaSortable();
+    }
+
+    function initCollectionMediaSortable() {
+      if (collectionEditorSortable) {
+        collectionEditorSortable.destroy();
+      }
+      collectionEditorSortable = new Sortable(collectionMediaContainer, {
+        animation: 150,
+        onEnd: function (evt) {
+          // Update the selectedMediaForCollection array based on new order
+          const items = document.querySelectorAll('#collectionMediaContainer .collection-media-item');
+          selectedMediaForCollection = [];
+          items.forEach(item => {
+            selectedMediaForCollection.push(item.getAttribute('data-url'));
+          });
+        }
+      });
+    }
+
+    // Function to show Save button when there are unsaved changes
+    function showSaveButton() {
+      hasUnsavedChanges = true;
+      saveUploadsButton.classList.remove('hidden');
+    }
+
+    // Function to save My Uploads (create/update kind 36936 event)
+    saveUploadsButton.addEventListener('click', async () => {
+      if (uploadedMedia.length === 0) {
+        showToast('No uploads to save.');
+        return;
+      }
+
+      // Prepare the event
+      const event = {
+        kind: 36936,
+        pubkey: publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [],
+        content: '',
+      };
+
+      // Add media URLs and descriptions as tags
+      uploadedMedia.forEach(media => {
+        event.tags.push(['r', media.url]);
+        if (media.description) {
+          event.tags.push(['rd', media.url, media.description]);
+        }
+      });
+
+      // Use existing event ID if updating
+      if (existingEventId) {
+        event.id = existingEventId;
+      }
+
+      // Sign and send the event
+      try {
+        await signAndSendEvent(event);
+        showToast('Uploads saved successfully.');
+        hasUnsavedChanges = false;
+        saveUploadsButton.classList.add('hidden');
+      } catch (error) {
+        console.error('Error saving uploads:', error);
+        showToast('Failed to save uploads. Please try again.');
+      }
+    });
+
+    // Function to handle Create Collection flow
+    createCollectionButton.addEventListener('click', () => {
+      if (uploadedMedia.length === 0) {
+        showToast('You have no uploads to add to a collection.');
+        return;
+      }
+      // Reset selected media
+      selectedMediaForCollection = [];
+      // Uncheck all checkboxes
+      const checkboxes = document.querySelectorAll('.media-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
+      // Reset collection editor
+      collectionEditor.classList.remove('hidden');
+      collectionNameInput.value = '';
+      collectionThumbnailInput.value = '';
+      collectionDescriptionInput.value = '';
+      collectionPageUrlInput.value = '';
+      collectionPageTitleInput.value = '';
+      collectionAboutInput.value = '';
+      textColorInput.value = '#ffffff';
+      backgroundColorInput.value = '#121212';
+      buttonColorInput.value = '#333333';
+      collectionEditorTitle.textContent = 'Create Collection';
+      saveCollectionButton.textContent = 'Save Collection';
+      delete collectionEditor.dataset.eventId;
+      // Clear collection media container
+      collectionMediaContainer.innerHTML = '';
+    });
+
+    // Function to save Collection
+    saveCollectionButton.addEventListener('click', async () => {
+      const collectionName = collectionNameInput.value.trim();
+      const thumbnailUrl = collectionThumbnailInput.value.trim();
+      const description = collectionDescriptionInput.value.trim();
+      const pageUrl = collectionPageUrlInput.value.trim();
+      const pageTitle = collectionPageTitleInput.value.trim();
+      const aboutSection = collectionAboutInput.value.trim();
+      const textColor = textColorInput.value;
+      const backgroundColor = backgroundColorInput.value;
+      const buttonColor = buttonColorInput.value;
+
+      if (!collectionName || !thumbnailUrl || selectedMediaForCollection.length === 0) {
+        showToast('Please fill all required fields and select media.');
+        return;
+      }
+
+      // Prepare the event
+      const event = {
+        kind: 36969,
+        pubkey: publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ['t', collectionName],
+          ['thumbnail', thumbnailUrl],
+          ['pageUrl', pageUrl],
+          ['pageTitle', pageTitle],
+          ['about', aboutSection],
+          ['textColor', textColor],
+          ['backgroundColor', backgroundColor],
+          ['buttonColor', buttonColor],
+        ],
+        content: description,
+      };
+
+      // Add selected media URLs
+      selectedMediaForCollection.forEach(url => {
+        event.tags.push(['r', url]);
+      });
+
+      // Use existing event ID if updating
+      if (collectionEditor.dataset.eventId) {
+        event.id = collectionEditor.dataset.eventId;
+      }
+
+      try {
+        await signAndSendEvent(event);
+        showToast('Collection saved and published to the Marketplace.');
+        resetCollectionEditor();
+        // Refresh the collections
+        myCollections = [];
+        fetchMyCollections();
+      } catch (error) {
+        console.error('Error saving collection:', error);
+        showToast('Failed to save the collection. Please try again.');
+      }
+    });
+
+    // Function to reset the collection editor
+    function resetCollectionEditor() {
+      collectionEditor.classList.add('hidden');
+      collectionNameInput.value = '';
+      collectionThumbnailInput.value = '';
+      collectionDescriptionInput.value = '';
+      collectionPageUrlInput.value = '';
+      collectionPageTitleInput.value = '';
+      collectionAboutInput.value = '';
+      selectedMediaForCollection = [];
+      collectionMediaContainer.innerHTML = '';
+      const checkboxes = document.querySelectorAll('.media-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
+      delete collectionEditor.dataset.eventId;
+    }
+
+    // Cancel Collection Creation
+    cancelCollectionButton.addEventListener('click', () => {
+      resetCollectionEditor();
+    });
+
+    // Function to sign and send an event
+    async function signAndSendEvent(event) {
+      try {
+        const signedEvent = await window.nostr.signEvent(event);
+        event.id = signedEvent.id;
+        event.sig = signedEvent.sig;
+
+        relay.send(JSON.stringify(['EVENT', event]));
+        console.log('Event sent:', event);
+        return signedEvent;
+      } catch (error) {
+        console.error('Error signing event:', error);
+        showToast('Error signing event. Please ensure your Nostr extension is working properly.');
+        throw error;
+      }
+    }
+
+    // Function to fetch Collections for the Marketplace
+    function fetchMarketplaceCollections() {
+      collectionsContainer.innerHTML = '';
+      const subscriptionId = 'marketplace-' + Math.random().toString(36).substring(2);
+      const request = [
+        "REQ",
+        subscriptionId,
+        {
+          kinds: [36969]
+        }
+      ];
+      relay.send(JSON.stringify(request));
+
+      relaySubscriptions[subscriptionId] = async (messageEvent) => {
+        console.log('Marketplace collection received:', messageEvent);
+        if (messageEvent.kind === 36969) {
+          const event = messageEvent;
+          displayCollection(event);
+          collections.push(event); // Store the collection
+        }
+      };
+    }
+
+    // Function to display a Collection
+    async function displayCollection(event) {
+      const collectionDiv = document.createElement('div');
+      collectionDiv.classList.add('collection');
+
+      // Fetch author profile
+      const authorPubKey = event.pubkey;
+      const authorProfile = await fetchAuthorProfile(authorPubKey);
+
+      // Author Info
+      const authorDiv = document.createElement('div');
+      authorDiv.classList.add('collection-author');
+
+      const authorImg = document.createElement('img');
+      authorImg.src = authorProfile.picture || 'default-profile.png';
+      authorDiv.appendChild(authorImg);
+
+      const authorName = document.createElement('span');
+      authorName.textContent = authorProfile.name || 'Anonymous';
+      authorDiv.appendChild(authorName);
+
+      collectionDiv.appendChild(authorDiv);
+
+      // Collection Name
+      const collectionNameTag = event.tags.find(t => t[0] === 't');
+      const collectionName = collectionNameTag ? collectionNameTag[1] : 'Untitled Collection';
+
+      const collectionTitleElem = document.createElement('h3');
+      collectionTitleElem.textContent = collectionName;
+      collectionDiv.appendChild(collectionTitleElem);
+
+      // Collection Thumbnail
+      const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
+      const thumbnailUrl = thumbnailTag ? thumbnailTag[1] : '';
+
+      if (thumbnailUrl) {
+        const thumbnailImg = document.createElement('img');
+        thumbnailImg.src = thumbnailUrl;
+        collectionDiv.appendChild(thumbnailImg);
+      }
+
+      // Click event to open collection
+      collectionDiv.addEventListener('click', () => {
+        openCollection(event);
+      });
+
+      // Append to Marketplace
+      collectionsContainer.appendChild(collectionDiv);
+    }
+
+    // Function to open collection
+    async function openCollection(event) {
+      // Update URL
+      const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
+      const collectionNameTag = event.tags.find(t => t[0] === 't');
+      const collectionName = collectionNameTag ? collectionNameTag[1] : 'collection';
+      const pageUrl = pageUrlTag ? pageUrlTag[1] : encodeURIComponent(collectionName);
+      const url = `/art/${pageUrl}`;
+      history.pushState({}, '', url);
+
+      // Hide main content
+      contentSections.forEach(section => {
+        section.classList.remove('active');
+      });
+      collectionView.style.display = 'flex';
+
+      // Set collection title
+      const pageTitleTag = event.tags.find(t => t[0] === 'pageTitle');
+      collectionTitle.textContent = pageTitleTag ? pageTitleTag[1] : collectionName;
+
+      // Set about section
+      const aboutTag = event.tags.find(t => t[0] === 'about');
+      collectionAboutSection.textContent = aboutTag ? aboutTag[1] : '';
+      if (aboutTag) {
+        collectionAboutSection.style.display = 'block';
+      } else {
+        collectionAboutSection.style.display = 'none';
+      }
+
+      // Set author info
+      const authorProfile = await fetchAuthorProfile(event.pubkey);
+      collectionAuthor.innerHTML = `
+        <div class="collection-author">
+          <img src="${authorProfile.picture || 'default-profile.png'}" alt="Author">
+          <span>${authorProfile.name || 'Anonymous'}</span>
+        </div>
+      `;
+
+      // Apply customizations
+      const textColorTag = event.tags.find(t => t[0] === 'textColor');
+      const backgroundColorTag = event.tags.find(t => t[0] === 'backgroundColor');
+      const buttonColorTag = event.tags.find(t => t[0] === 'buttonColor');
+
+      // Apply custom styles
+      if (textColorTag || backgroundColorTag || buttonColorTag) {
+        document.documentElement.style.setProperty('--custom-text-color', textColorTag ? textColorTag[1] : '#ffffff');
+        document.documentElement.style.setProperty('--custom-background-color', backgroundColorTag ? backgroundColorTag[1] : '#121212');
+        document.documentElement.style.setProperty('--custom-button-color', buttonColorTag ? buttonColorTag[1] : '#333333');
+        collectionView.classList.add('customized');
+      } else {
+        collectionView.classList.remove('customized');
+      }
+
+      // Display media in grid
+      collectionGrid.innerHTML = '';
+      const mediaUrls = event.tags.filter(t => t[0] === 'r').map(t => t[1]);
+      mediaUrls.forEach(url => {
+        let mediaElement;
+        if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+          mediaElement = document.createElement('img');
+          mediaElement.src = url;
+        } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+          mediaElement = document.createElement('video');
+          mediaElement.src = url;
+          mediaElement.controls = true;
+        } else if (url.match(/\.(mp3|wav|ogg)$/i)) {
+          mediaElement = document.createElement('audio');
+          mediaElement.src = url;
+          mediaElement.controls = true;
+        } else {
+          mediaElement = document.createElement('p');
+          mediaElement.textContent = 'Unsupported media type.';
+          mediaElement.style.color = 'var(--upload-error-color)';
+        }
+
+        mediaElement.addEventListener('click', () => {
+          openFullscreen(url);
+        });
+
+        collectionGrid.appendChild(mediaElement);
+      });
+
+      // Store the current collection's event ID
+      currentCollectionEventId = event.id;
+
+      // Initialize chat
+      initializeChat();
+
+      // Fetch existing messages for this collection
+      fetchChatMessages();
+    }
+
+    // Function to open media in fullscreen
+    function openFullscreen(url) {
+      popupContent.innerHTML = '';
+      let mediaElement;
+      if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+        mediaElement = document.createElement('img');
+        mediaElement.src = url;
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        mediaElement = document.createElement('video');
+        mediaElement.src = url;
+        mediaElement.controls = true;
+        mediaElement.autoplay = true;
+      } else if (url.match(/\.(mp3|wav|ogg)$/i)) {
+        mediaElement = document.createElement('audio');
+        mediaElement.src = url;
+        mediaElement.controls = true;
+        mediaElement.autoplay = true;
+      } else {
+        mediaElement = document.createElement('p');
+        mediaElement.textContent = 'Unsupported media type.';
+        mediaElement.style.color = 'var(--upload-error-color)';
+      }
+
+      popupContent.appendChild(mediaElement);
+      fullscreenPopup.style.display = 'flex';
+    }
+
+    // Close fullscreen popup
+    closePopup.addEventListener('click', () => {
+      fullscreenPopup.style.display = 'none';
+    });
+
+    // Function to fetch author profile
+    async function fetchAuthorProfile(pubkey) {
+      // Use a cache to prevent multiple requests for the same profile
+      if (!fetchAuthorProfile.cache) {
+        fetchAuthorProfile.cache = {};
+      }
+
+      if (fetchAuthorProfile.cache[pubkey]) {
+        return fetchAuthorProfile.cache[pubkey];
+      }
+
+      return new Promise((resolve) => {
+        const tempRelay = new WebSocket('wss://relay.damus.io');
+        tempRelay.onopen = () => {
+          const request = JSON.stringify([
+            "REQ",
+            "profile-" + pubkey,
+            {
+              kinds: [0],
+              authors: [pubkey]
+            }
+          ]);
+          tempRelay.send(request);
+        };
+        tempRelay.onmessage = (event) => {
+          const response = JSON.parse(event.data);
+          if (response && response[2]) {
+            const profile = JSON.parse(response[2].content);
+            fetchAuthorProfile.cache[pubkey] = profile;
+            resolve(profile);
+            tempRelay.close();
+          }
+        };
+      });
+    }
+
+    // Function to initialize chat
+    function initializeChat() {
+      if (!publicKey) {
+        // If the user is not logged in, hide the chat input
+        chatInput.disabled = true;
+        sendChatButton.disabled = true;
+        chatInput.placeholder = 'Please log in to send messages.';
+      } else {
+        chatInput.disabled = false;
+        sendChatButton.disabled = false;
+        chatInput.placeholder = 'Type your message here...';
+      }
+    }
+
+    // Event listener for sending chat messages
+    sendChatButton.addEventListener('click', async () => {
+      const message = chatInput.value.trim();
+      if (!message) {
+        showToast('Please enter a message.');
+        return;
+      }
+
+      // Prepare the event
+      const event = {
+        kind: 1, // Kind 1 for short text note
+        pubkey: publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['e', currentCollectionEventId]],
+        content: message,
+      };
+
+      // Sign and send the event
+      try {
+        await signAndSendEvent(event);
+        chatInput.value = '';
+        showToast('Message sent.');
+
+        // Append the new message to the chat
+        displayChatMessage(event, userProfile);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        showToast('Failed to send message. Please try again.');
+      }
+    });
+
+    // Function to fetch chat messages for the current collection
+    function fetchChatMessages() {
+      chatMessages.innerHTML = '';
+
+      const subscriptionId = 'chat-' + Math.random().toString(36).substring(2);
+      const request = [
+        'REQ',
+        subscriptionId,
+        {
+          kinds: [1], // Kind 1 events
+          '#e': [currentCollectionEventId], // Filter by 'e' tag referencing the collection
+        },
+      ];
+      relay.send(JSON.stringify(request));
+
+      relaySubscriptions[subscriptionId] = async (messageEvent) => {
+        const authorProfile = await fetchAuthorProfile(messageEvent.pubkey);
+        displayChatMessage(messageEvent, authorProfile);
+      };
+    }
+
+    // Function to display a chat message
+    function displayChatMessage(messageEvent, authorProfile) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('chat-message');
+
+      // Author Image
+      const authorImg = document.createElement('img');
+      authorImg.src = authorProfile.picture || 'default-profile.png';
+      authorImg.alt = 'Author';
+      authorImg.classList.add('author-img');
+
+      // Message Content
+      const messageContent = document.createElement('div');
+      messageContent.classList.add('chat-message-content');
+
+      // Author Name
+      const authorName = document.createElement('strong');
+      authorName.textContent = authorProfile.name || 'Anonymous';
+      messageContent.appendChild(authorName);
+
+      // Message Text
+      const content = document.createElement('p');
+      // Render content, including images if present
+      renderMessageContent(content, messageEvent.content);
+      messageContent.appendChild(content);
+
+      messageDiv.appendChild(authorImg);
+      messageDiv.appendChild(messageContent);
+
+      chatMessages.appendChild(messageDiv);
+    }
+
+    // Function to render message content with media files
+    function renderMessageContent(container, content) {
+      // Check for image URLs and render them as images
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const parts = content.split(urlRegex);
+
+      parts.forEach((part) => {
+        if (urlRegex.test(part)) {
+          const url = part;
+          if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.maxWidth = '200px';
+            img.style.borderRadius = 'var(--border-radius)';
+            container.appendChild(img);
+          } else {
+            const link = document.createElement('a');
+            link.href = url;
+            link.textContent = url;
+            link.style.color = 'var(--link-color)';
+            link.target = '_blank';
+            container.appendChild(link);
+          }
+        } else {
+          container.appendChild(document.createTextNode(part));
+        }
+      });
+    }
+
+    // Warn user about unsaved changes when navigating away
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Handle browser back/forward navigation
+    window.onpopstate = function(event) {
+      const path = window.location.pathname;
+      if (path.startsWith('/art/')) {
+        // Find collection by page URL
+        const pageUrl = decodeURIComponent(path.split('/art/')[1]);
+        const collection = collections.find(event => {
+          const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
+          return pageUrlTag && pageUrlTag[1] === pageUrl;
+        });
+        if (collection) {
+          openCollection(collection);
+        } else {
+          // Collection not found
+          collectionView.style.display = 'none';
+          contentSections.forEach(section => {
+            section.classList.remove('active');
+          });
+          document.getElementById('marketplaceSection').classList.add('active');
+        }
+      } else {
+        collectionView.style.display = 'none';
+        contentSections.forEach(section => {
+          section.classList.remove('active');
+        });
+        if (path === '/my-uploads') {
+          document.querySelector('[data-tab="my-uploads"]').click();
+        } else if (path === '/marketplace') {
+          document.querySelector('[data-tab="marketplace"]').click();
+        } else {
+          document.querySelector('[data-tab="upload"]').click();
+        }
+      }
+    };
+  </script>
+</body>
+</html>
