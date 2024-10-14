@@ -439,7 +439,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-bottom: 20px;
     }
 
     .upload-item {
@@ -605,172 +604,6 @@
       cursor: grabbing;
     }
 
-    /* Styles for Collection Items in My Uploads */
-    .collection-item {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      background-color: var(--input-bg-color);
-      border-radius: var(--border-radius);
-      position: relative;
-    }
-
-    .collection-item img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: var(--border-radius);
-      margin-right: 20px;
-    }
-
-    .collection-item .collection-info {
-      flex: 1;
-    }
-
-    .collection-item button {
-      margin-left: 10px;
-    }
-
-    /* Collection Media Items */
-    .collection-media-item {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      border: 2px solid var(--thumbnail-border-color);
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      box-shadow: 0 2px 5px var(--shadow-color);
-      margin: 5px;
-    }
-
-    .collection-media-item img,
-    .collection-media-item video,
-    .collection-media-item audio {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .collection-media-item .remove-btn {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      background-color: var(--remove-btn-bg-color);
-      border: none;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: background-color var(--transition-speed);
-      font-size: 14px;
-    }
-
-    .collection-media-item .remove-btn:hover {
-      background-color: var(--remove-btn-hover-bg-color);
-    }
-
-    /* Color Picker Styles */
-    .color-picker {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .color-picker label {
-      margin-right: 10px;
-      width: 150px;
-    }
-
-    .color-picker input[type="color"] {
-      width: 40px;
-      height: 40px;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      background: none;
-    }
-
-    /* Customization in Collection View */
-    #collectionView.customized {
-      background-color: var(--custom-background-color);
-      color: var(--custom-text-color);
-    }
-
-    #collectionView.customized button {
-      background-color: var(--custom-button-color);
-    }
-
-    /* Chat Styles */
-    .chat-container {
-      width: 100%;
-      max-width: 1000px;
-      margin-top: 20px;
-      background-color: var(--content-bg-color);
-      padding: 20px;
-      border-radius: var(--border-radius);
-    }
-
-    .chat-messages {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column-reverse;
-    }
-
-    .chat-message {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-
-    .chat-message img.author-img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
-
-    .chat-message-content {
-      max-width: 80%;
-    }
-
-    .chat-message-content img {
-      max-width: 100%;
-      border-radius: var(--border-radius);
-      margin-top: 5px;
-    }
-
-    .chat-message-content a {
-      color: var(--link-color);
-    }
-
-    .chat-input-container {
-      display: flex;
-      align-items: center;
-    }
-
-    .chat-input-container textarea {
-      flex: 1;
-      padding: 10px;
-      border-radius: var(--border-radius);
-      background-color: var(--input-bg-color);
-      color: var(--input-text-color);
-      border: none;
-      resize: none;
-      height: 50px;
-      margin-right: 10px;
-    }
-
-    .chat-input-container button {
-      padding: 10px 20px;
-    }
-
     /* Responsive Design */
     @media (max-width: 600px) {
       .upload-section {
@@ -871,11 +704,8 @@
       <h2>My Uploads</h2>
       <!-- Container for User's Uploaded Media -->
       <div class="uploads-container" id="uploadsContainer"></div>
-      <!-- Container for User's Collections -->
-      <h2>My Collections</h2>
-      <div class="collections-container" id="myCollectionsContainer"></div>
       <!-- Buttons Container -->
-      <div id="buttonsContainer" style="margin-top: 20px;">
+      <div id="buttonsContainer">
         <!-- Save Button -->
         <button id="saveUploadsButton" aria-label="Save Uploads" class="hidden">Save Changes</button>
         <!-- Create Collection Button -->
@@ -883,29 +713,10 @@
       </div>
       <!-- Collection Editor -->
       <div class="collection-editor hidden" id="collectionEditor">
-        <h3 id="collectionEditorTitle">Create Collection</h3>
+        <h3>Create Collection</h3>
         <input type="text" id="collectionName" placeholder="Collection Name">
         <input type="text" id="collectionThumbnail" placeholder="Thumbnail URL">
-        <input type="text" id="collectionPageUrl" placeholder="Page URL (e.g., my-art)">
-        <input type="text" id="collectionPageTitle" placeholder="Page H1 Title">
-        <textarea id="collectionAbout" placeholder="About Section (H2)"></textarea>
-        <!-- Color Pickers -->
-        <div class="color-picker">
-          <label for="textColor">Text Color:</label>
-          <input type="color" id="textColor" value="#ffffff">
-        </div>
-        <div class="color-picker">
-          <label for="backgroundColor">Background Color:</label>
-          <input type="color" id="backgroundColor" value="#121212">
-        </div>
-        <div class="color-picker">
-          <label for="buttonColor">Button Color:</label>
-          <input type="color" id="buttonColor" value="#333333">
-        </div>
-        <!-- Media Items in Collection -->
-        <h4>Media in Collection</h4>
-        <div id="collectionMediaContainer"></div>
-        <!-- Save and Cancel Buttons -->
+        <textarea id="collectionDescription" placeholder="Description (optional)"></textarea>
         <button id="saveCollectionButton">Save Collection</button>
         <button id="cancelCollectionButton">Cancel</button>
       </div>
@@ -920,19 +731,9 @@
 
     <!-- Collection View Section -->
     <div id="collectionView">
-      <h1 id="collectionTitle"></h1>
-      <h2 id="collectionAboutSection"></h2>
+      <h2 id="collectionTitle"></h2>
       <div id="collectionAuthor"></div>
       <div class="collection-grid" id="collectionGrid"></div>
-
-      <!-- Chat Container -->
-      <div class="chat-container" id="chatContainer">
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-container">
-          <textarea id="chatInput" placeholder="Type your message here..."></textarea>
-          <button id="sendChatButton">Send</button>
-        </div>
-      </div>
     </div>
   </main>
 
@@ -982,22 +783,6 @@
     const closePopup = document.getElementById('closePopup');
     const popupContent = document.getElementById('popupContent');
     const tabsContainer = document.getElementById('tabsContainer');
-    const myCollectionsContainer = document.getElementById('myCollectionsContainer');
-    const collectionPageUrlInput = document.getElementById('collectionPageUrl');
-    const collectionPageTitleInput = document.getElementById('collectionPageTitle');
-    const collectionAboutInput = document.getElementById('collectionAbout');
-    const textColorInput = document.getElementById('textColor');
-    const backgroundColorInput = document.getElementById('backgroundColor');
-    const buttonColorInput = document.getElementById('buttonColor');
-    const collectionEditorTitle = document.getElementById('collectionEditorTitle');
-    const collectionMediaContainer = document.getElementById('collectionMediaContainer');
-    const collectionAboutSection = document.getElementById('collectionAboutSection');
-
-    // Variables for the chat feature
-    const chatContainer = document.getElementById('chatContainer');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const sendChatButton = document.getElementById('sendChatButton');
 
     let publicKey = '';
     let privateKey = '';
@@ -1010,46 +795,20 @@
     let hasUnsavedChanges = false; // Flag to track unsaved changes
     let selectedMediaForCollection = []; // Media selected for collection
     let collections = []; // Array to store fetched collections
-    let myCollections = []; // Array to store user's collections
-    let collectionEditorSortable;
-    let currentCollectionEventId = null; // To store the event ID of the currently viewed collection
-    const relaySubscriptions = {};
 
     // Initialize Relay
     function initRelay() {
-      relay = new WebSocket('wss://relay.damus.io'); // Use a reliable relay
+      relay = new WebSocket('wss://relay.nostrfreaks.com');
       relay.onopen = () => {
         console.log('Connected to relay');
-        // Fetch data after ensuring relay is open
+        // After relay connection, fetch existing uploads
         fetchMyUploads();
-        fetchMyCollections();
       };
       relay.onerror = (error) => {
         console.error('Relay error:', error);
       };
       relay.onclose = () => {
         console.log('Relay connection closed');
-      };
-
-      // Relay Message Handler
-      relay.onmessage = async (event) => {
-        console.log('Received from relay:', event.data); // Log received data
-        const data = JSON.parse(event.data);
-        if (data[0] === 'EVENT') {
-          const subscriptionId = data[1];
-          const messageEvent = data[2];
-
-          if (relaySubscriptions[subscriptionId] && typeof relaySubscriptions[subscriptionId] === 'function') {
-            await relaySubscriptions[subscriptionId](messageEvent);
-          }
-        } else if (data[0] === 'EOSE') {
-          const subscriptionId = data[1];
-          console.log(`End of stored events for subscription ${subscriptionId}`);
-          // Optionally, close the subscription
-          relay.send(JSON.stringify(['CLOSE', subscriptionId]));
-        } else if (data[0] === 'NOTICE') {
-          console.warn('Relay notice:', data[1]);
-        }
       };
     }
 
@@ -1068,22 +827,60 @@
       });
     }
 
-    // Persist User Login Across Refreshes
-    document.addEventListener('DOMContentLoaded', () => {
-      const storedPublicKey = localStorage.getItem('publicKey');
-      if (storedPublicKey) {
-        publicKey = storedPublicKey;
-        initAfterLogin();
-      }
-    });
-
-    // Modify the login function to store public key
+    // Function to handle NIP-07 Login
     async function loginWithNIP07() {
       try {
+        // Check if the Nostr extension is available
         if (window.nostr) {
+          // Get user's public key
           publicKey = await window.nostr.getPublicKey();
-          localStorage.setItem('publicKey', publicKey);
-          initAfterLogin();
+          console.log('User public key:', publicKey);
+
+          // Fetch user's profile from relay
+          const tempRelay = new WebSocket('wss://relay.damus.io');
+
+          tempRelay.onopen = () => {
+            // Request kind 0 data (user profile)
+            const request = JSON.stringify([
+              "REQ",
+              "1",
+              {
+                kinds: [0],
+                authors: [publicKey]
+              }
+            ]);
+            tempRelay.send(request);
+          };
+
+          tempRelay.onmessage = (event) => {
+            const response = JSON.parse(event.data);
+            if (response && response[2]) {
+              userProfile = JSON.parse(response[2].content);
+              // If profile has a picture, display it
+              if (userProfile.picture) {
+                robotEmoji.classList.add('hidden');
+                robotEmoji.remove();
+
+                const img = document.createElement('img');
+                img.src = userProfile.picture;
+                img.alt = "Profile Picture";
+                img.loading = 'lazy';
+                img.onload = () => {
+                  img.style.width = '100%';
+                  img.style.height = '100%';
+                };
+                loginButton.appendChild(img);
+
+                // Disable further clicks on the login button
+                loginButton.style.cursor = 'default';
+                loginButton.setAttribute('aria-label', 'Logged In');
+                loginButton.removeEventListener('click', loginWithNIP07);
+              }
+
+              // After fetching profile, initialize relay
+              initRelay();
+            }
+          };
         } else {
           showToast("Please install a Nostr extension (e.g., Alby) to log in.");
         }
@@ -1091,57 +888,6 @@
         console.error('Login failed:', error);
         showToast("Failed to log in. Please try again.");
       }
-    }
-
-    // Function to initialize after login or page refresh
-    function initAfterLogin() {
-      // Fetch user's profile and initialize relay
-      // Update the UI to reflect logged-in state
-      // Fetch user's profile from relay
-      const tempRelay = new WebSocket('wss://relay.damus.io');
-
-      tempRelay.onopen = () => {
-        // Request kind 0 data (user profile)
-        const request = JSON.stringify([
-          "REQ",
-          "1",
-          {
-            kinds: [0],
-            authors: [publicKey]
-          }
-        ]);
-        tempRelay.send(request);
-      };
-
-      tempRelay.onmessage = (event) => {
-        const response = JSON.parse(event.data);
-        if (response && response[2]) {
-          userProfile = JSON.parse(response[2].content);
-          // If profile has a picture, display it
-          if (userProfile.picture) {
-            robotEmoji.classList.add('hidden');
-            robotEmoji.remove();
-
-            const img = document.createElement('img');
-            img.src = userProfile.picture;
-            img.alt = "Profile Picture";
-            img.loading = 'lazy';
-            img.onload = () => {
-              img.style.width = '100%';
-              img.style.height = '100%';
-            };
-            loginButton.appendChild(img);
-
-            // Disable further clicks on the login button
-            loginButton.style.cursor = 'default';
-            loginButton.setAttribute('aria-label', 'Logged In');
-            loginButton.removeEventListener('click', loginWithNIP07);
-          }
-
-          // After fetching profile, initialize relay
-          initRelay();
-        }
-      };
     }
 
     // Trigger login on click
@@ -1468,9 +1214,9 @@
       });
     }
 
-    // Function to fetch user's existing kind 36936 event (My Uploads)
+    // Function to fetch user's existing kind 36936 event
     function fetchMyUploads() {
-      const subscriptionId = 'uploads-' + Math.random().toString(36).substring(2);
+      const subscriptionId = Math.random().toString(36).substring(2);
       const request = [
         "REQ",
         subscriptionId,
@@ -1481,44 +1227,23 @@
       ];
       relay.send(JSON.stringify(request));
 
-      relaySubscriptions[subscriptionId] = (messageEvent) => {
-        console.log('Upload event received:', messageEvent);
-        if (messageEvent.kind === 36936) {
-          existingEventId = messageEvent.id; // Store existing event ID
+      relay.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data[0] === 'EVENT' && data[2].kind === 36936) {
+          const content = data[2].content;
+          const tags = data[2].tags;
+          existingEventId = data[2].id; // Store existing event ID
           // Parse the tags to get media URLs and descriptions
           uploadedMedia = [];
-          messageEvent.tags.forEach(tag => {
+          tags.forEach(tag => {
             if (tag[0] === 'r') {
               const url = tag[1];
-              const descriptionTag = messageEvent.tags.find(t => t[0] === 'rd' && t[1] === url);
+              const descriptionTag = tags.find(t => t[0] === 'rd' && t[1] === url);
               const description = descriptionTag ? descriptionTag[2] : '';
               uploadedMedia.push({ url, description });
             }
           });
           displayMyUploads();
-        }
-      };
-    }
-
-    // Function to fetch user's collections (kind 36969 events)
-    function fetchMyCollections() {
-      const subscriptionId = 'collections-' + Math.random().toString(36).substring(2);
-      const request = [
-        "REQ",
-        subscriptionId,
-        {
-          kinds: [36969],
-          authors: [publicKey]
-        }
-      ];
-      relay.send(JSON.stringify(request));
-
-      relaySubscriptions[subscriptionId] = (messageEvent) => {
-        console.log('Collection event received:', messageEvent);
-        if (messageEvent.kind === 36969) {
-          const event = messageEvent;
-          myCollections.push(event);
-          displayMyCollections();
         }
       };
     }
@@ -1561,22 +1286,7 @@
         textarea.addEventListener('input', () => {
           showSaveButton();
         });
-        textarea.disabled = true; // Initially disabled
         uploadItem.appendChild(textarea);
-
-        // Edit Button
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.addEventListener('click', () => {
-          textarea.disabled = !textarea.disabled;
-          if (textarea.disabled) {
-            editButton.textContent = 'Edit';
-            showSaveButton();
-          } else {
-            editButton.textContent = 'Save';
-          }
-        });
-        uploadItem.appendChild(editButton);
 
         // Delete Button
         const deleteButton = document.createElement('button');
@@ -1589,192 +1299,6 @@
         uploadItem.appendChild(deleteButton);
 
         uploadsContainer.appendChild(uploadItem);
-      });
-    }
-
-    // Function to display My Collections
-    function displayMyCollections() {
-      myCollectionsContainer.innerHTML = '';
-      myCollections.forEach(event => {
-        const collectionItem = document.createElement('div');
-        collectionItem.classList.add('collection-item');
-
-        // Collection Thumbnail
-        const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
-        const thumbnailUrl = thumbnailTag ? thumbnailTag[1] : '';
-
-        const img = document.createElement('img');
-        img.src = thumbnailUrl || 'default-thumbnail.png';
-        collectionItem.appendChild(img);
-
-        // Collection Info
-        const infoDiv = document.createElement('div');
-        infoDiv.classList.add('collection-info');
-
-        // Collection Name
-        const nameTag = event.tags.find(t => t[0] === 't');
-        const collectionName = nameTag ? nameTag[1] : 'Unnamed Collection';
-
-        const title = document.createElement('h4');
-        title.textContent = collectionName;
-        infoDiv.appendChild(title);
-
-        // Description
-        const description = event.content || '';
-        const descPara = document.createElement('p');
-        descPara.textContent = description;
-        infoDiv.appendChild(descPara);
-
-        collectionItem.appendChild(infoDiv);
-
-        // Edit Button
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.addEventListener('click', () => {
-          editCollection(event);
-        });
-        collectionItem.appendChild(editButton);
-
-        // Delete Button
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => {
-          deleteCollection(event);
-        });
-        collectionItem.appendChild(deleteButton);
-
-        myCollectionsContainer.appendChild(collectionItem);
-      });
-    }
-
-    // Function to edit a collection
-    function editCollection(event) {
-      // Pre-fill the collection editor with existing data
-      const nameTag = event.tags.find(t => t[0] === 't');
-      const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
-      const mediaTags = event.tags.filter(t => t[0] === 'r');
-
-      collectionNameInput.value = nameTag ? nameTag[1] : '';
-      collectionThumbnailInput.value = thumbnailTag ? thumbnailTag[1] : '';
-      collectionDescriptionInput.value = event.content || '';
-
-      // Select the media
-      selectedMediaForCollection = mediaTags.map(t => t[1]);
-      displayCollectionMedia(selectedMediaForCollection);
-
-      // Uncheck all checkboxes
-      const checkboxes = document.querySelectorAll('.media-checkbox');
-      checkboxes.forEach(cb => cb.checked = false);
-
-      // Pre-fill the additional settings
-      const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
-      const pageTitleTag = event.tags.find(t => t[0] === 'pageTitle');
-      const aboutTag = event.tags.find(t => t[0] === 'about');
-      const textColorTag = event.tags.find(t => t[0] === 'textColor');
-      const backgroundColorTag = event.tags.find(t => t[0] === 'backgroundColor');
-      const buttonColorTag = event.tags.find(t => t[0] === 'buttonColor');
-
-      collectionPageUrlInput.value = pageUrlTag ? pageUrlTag[1] : '';
-      collectionPageTitleInput.value = pageTitleTag ? pageTitleTag[1] : '';
-      collectionAboutInput.value = aboutTag ? aboutTag[1] : '';
-      textColorInput.value = textColorTag ? textColorTag[1] : '#ffffff';
-      backgroundColorInput.value = backgroundColorTag ? backgroundColorTag[1] : '#121212';
-      buttonColorInput.value = buttonColorTag ? buttonColorTag[1] : '#333333';
-
-      // Show the collection editor
-      collectionEditor.classList.remove('hidden');
-      collectionEditorTitle.textContent = 'Edit Collection';
-      saveCollectionButton.textContent = 'Update Collection';
-
-      // Store the event ID for updating
-      collectionEditor.dataset.eventId = event.id;
-    }
-
-    // Function to delete a collection
-    function deleteCollection(event) {
-      // Remove from myCollections array
-      myCollections = myCollections.filter(e => e.id !== event.id);
-      displayMyCollections();
-
-      // Send a delete event to the relay
-      const deleteEvent = {
-        kind: 5,
-        pubkey: publicKey,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [['e', event.id]],
-        content: '',
-      };
-
-      signAndSendEvent(deleteEvent)
-        .then(() => {
-          showToast('Collection deleted.');
-        })
-        .catch(error => {
-          console.error('Error deleting collection:', error);
-          showToast('Failed to delete the collection.');
-        });
-    }
-
-    // Display Collection Media Thumbnails
-    function displayCollectionMedia(mediaUrls) {
-      const container = document.getElementById('collectionMediaContainer');
-      container.innerHTML = '';
-      mediaUrls.forEach(url => {
-        const mediaItem = document.createElement('div');
-        mediaItem.classList.add('collection-media-item');
-        mediaItem.setAttribute('data-url', url);
-
-        let mediaElement;
-        if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-          mediaElement = document.createElement('img');
-          mediaElement.src = url;
-        } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-          mediaElement = document.createElement('video');
-          mediaElement.src = url;
-          mediaElement.muted = true;
-          mediaElement.loop = true;
-          mediaElement.autoplay = true;
-        } else if (url.match(/\.(mp3|wav|ogg)$/i)) {
-          mediaElement = document.createElement('audio');
-          mediaElement.src = url;
-          mediaElement.controls = true;
-        } else {
-          mediaElement = document.createElement('p');
-          mediaElement.textContent = 'Unsupported media type.';
-        }
-
-        mediaItem.appendChild(mediaElement);
-
-        // Remove button
-        const removeBtn = document.createElement('button');
-        removeBtn.classList.add('remove-btn');
-        removeBtn.innerHTML = '&times;';
-        removeBtn.addEventListener('click', () => {
-          container.removeChild(mediaItem);
-          selectedMediaForCollection = selectedMediaForCollection.filter(u => u !== url);
-        });
-
-        mediaItem.appendChild(removeBtn);
-        container.appendChild(mediaItem);
-      });
-
-      initCollectionMediaSortable();
-    }
-
-    function initCollectionMediaSortable() {
-      if (collectionEditorSortable) {
-        collectionEditorSortable.destroy();
-      }
-      collectionEditorSortable = new Sortable(collectionMediaContainer, {
-        animation: 150,
-        onEnd: function (evt) {
-          // Update the selectedMediaForCollection array based on new order
-          const items = document.querySelectorAll('#collectionMediaContainer .collection-media-item');
-          selectedMediaForCollection = [];
-          items.forEach(item => {
-            selectedMediaForCollection.push(item.getAttribute('data-url'));
-          });
-        }
       });
     }
 
@@ -1808,21 +1332,16 @@
         }
       });
 
-      // Use existing event ID if updating
-      if (existingEventId) {
-        event.id = existingEventId;
-      }
+      // Sign the event
+      const signedEvent = await window.nostr.signEvent(event);
+      event.id = signedEvent.id;
+      event.sig = signedEvent.sig;
 
-      // Sign and send the event
-      try {
-        await signAndSendEvent(event);
-        showToast('Uploads saved successfully.');
-        hasUnsavedChanges = false;
-        saveUploadsButton.classList.add('hidden');
-      } catch (error) {
-        console.error('Error saving uploads:', error);
-        showToast('Failed to save uploads. Please try again.');
-      }
+      // Publish the event
+      relay.send(JSON.stringify(['EVENT', event]));
+      showToast('Uploads saved successfully.');
+      hasUnsavedChanges = false;
+      saveUploadsButton.classList.add('hidden');
     });
 
     // Function to handle Create Collection flow
@@ -1833,25 +1352,8 @@
       }
       // Reset selected media
       selectedMediaForCollection = [];
-      // Uncheck all checkboxes
-      const checkboxes = document.querySelectorAll('.media-checkbox');
-      checkboxes.forEach(cb => cb.checked = false);
-      // Reset collection editor
+      // Show the collection editor
       collectionEditor.classList.remove('hidden');
-      collectionNameInput.value = '';
-      collectionThumbnailInput.value = '';
-      collectionDescriptionInput.value = '';
-      collectionPageUrlInput.value = '';
-      collectionPageTitleInput.value = '';
-      collectionAboutInput.value = '';
-      textColorInput.value = '#ffffff';
-      backgroundColorInput.value = '#121212';
-      buttonColorInput.value = '#333333';
-      collectionEditorTitle.textContent = 'Create Collection';
-      saveCollectionButton.textContent = 'Save Collection';
-      delete collectionEditor.dataset.eventId;
-      // Clear collection media container
-      collectionMediaContainer.innerHTML = '';
     });
 
     // Function to save Collection
@@ -1859,12 +1361,6 @@
       const collectionName = collectionNameInput.value.trim();
       const thumbnailUrl = collectionThumbnailInput.value.trim();
       const description = collectionDescriptionInput.value.trim();
-      const pageUrl = collectionPageUrlInput.value.trim();
-      const pageTitle = collectionPageTitleInput.value.trim();
-      const aboutSection = collectionAboutInput.value.trim();
-      const textColor = textColorInput.value;
-      const backgroundColor = backgroundColorInput.value;
-      const buttonColor = buttonColorInput.value;
 
       if (!collectionName || !thumbnailUrl || selectedMediaForCollection.length === 0) {
         showToast('Please fill all required fields and select media.');
@@ -1879,12 +1375,6 @@
         tags: [
           ['t', collectionName],
           ['thumbnail', thumbnailUrl],
-          ['pageUrl', pageUrl],
-          ['pageTitle', pageTitle],
-          ['about', aboutSection],
-          ['textColor', textColor],
-          ['backgroundColor', backgroundColor],
-          ['buttonColor', buttonColor],
         ],
         content: description,
       };
@@ -1894,66 +1384,39 @@
         event.tags.push(['r', url]);
       });
 
-      // Use existing event ID if updating
-      if (collectionEditor.dataset.eventId) {
-        event.id = collectionEditor.dataset.eventId;
-      }
+      // Sign the event
+      const signedEvent = await window.nostr.signEvent(event);
+      event.id = signedEvent.id;
+      event.sig = signedEvent.sig;
 
-      try {
-        await signAndSendEvent(event);
-        showToast('Collection saved and published to the Marketplace.');
-        resetCollectionEditor();
-        // Refresh the collections
-        myCollections = [];
-        fetchMyCollections();
-      } catch (error) {
-        console.error('Error saving collection:', error);
-        showToast('Failed to save the collection. Please try again.');
-      }
-    });
+      // Publish the event
+      relay.send(JSON.stringify(['EVENT', event]));
+      showToast('Collection created and published to the Marketplace.');
 
-    // Function to reset the collection editor
-    function resetCollectionEditor() {
+      // Reset collection editor
       collectionEditor.classList.add('hidden');
       collectionNameInput.value = '';
       collectionThumbnailInput.value = '';
       collectionDescriptionInput.value = '';
-      collectionPageUrlInput.value = '';
-      collectionPageTitleInput.value = '';
-      collectionAboutInput.value = '';
       selectedMediaForCollection = [];
-      collectionMediaContainer.innerHTML = '';
+
+      // Uncheck all checkboxes
       const checkboxes = document.querySelectorAll('.media-checkbox');
       checkboxes.forEach(cb => cb.checked = false);
-      delete collectionEditor.dataset.eventId;
-    }
+    });
 
     // Cancel Collection Creation
     cancelCollectionButton.addEventListener('click', () => {
-      resetCollectionEditor();
+      collectionEditor.classList.add('hidden');
+      selectedMediaForCollection = [];
+      const checkboxes = document.querySelectorAll('.media-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
     });
-
-    // Function to sign and send an event
-    async function signAndSendEvent(event) {
-      try {
-        const signedEvent = await window.nostr.signEvent(event);
-        event.id = signedEvent.id;
-        event.sig = signedEvent.sig;
-
-        relay.send(JSON.stringify(['EVENT', event]));
-        console.log('Event sent:', event);
-        return signedEvent;
-      } catch (error) {
-        console.error('Error signing event:', error);
-        showToast('Error signing event. Please ensure your Nostr extension is working properly.');
-        throw error;
-      }
-    }
 
     // Function to fetch Collections for the Marketplace
     function fetchMarketplaceCollections() {
       collectionsContainer.innerHTML = '';
-      const subscriptionId = 'marketplace-' + Math.random().toString(36).substring(2);
+      const subscriptionId = Math.random().toString(36).substring(2);
       const request = [
         "REQ",
         subscriptionId,
@@ -1963,10 +1426,10 @@
       ];
       relay.send(JSON.stringify(request));
 
-      relaySubscriptions[subscriptionId] = async (messageEvent) => {
-        console.log('Marketplace collection received:', messageEvent);
-        if (messageEvent.kind === 36969) {
-          const event = messageEvent;
+      relay.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data[0] === 'EVENT' && data[2].kind === 36969) {
+          const event = data[2];
           displayCollection(event);
           collections.push(event); // Store the collection
         }
@@ -1991,7 +1454,7 @@
       authorDiv.appendChild(authorImg);
 
       const authorName = document.createElement('span');
-      authorName.textContent = authorProfile.name || 'Anonymous';
+      authorName.textContent = authorProfile.nip05 || 'Anonymous';
       authorDiv.appendChild(authorName);
 
       collectionDiv.appendChild(authorDiv);
@@ -2000,9 +1463,9 @@
       const collectionNameTag = event.tags.find(t => t[0] === 't');
       const collectionName = collectionNameTag ? collectionNameTag[1] : 'Untitled Collection';
 
-      const collectionTitleElem = document.createElement('h3');
-      collectionTitleElem.textContent = collectionName;
-      collectionDiv.appendChild(collectionTitleElem);
+      const collectionTitle = document.createElement('h3');
+      collectionTitle.textContent = collectionName;
+      collectionDiv.appendChild(collectionTitle);
 
       // Collection Thumbnail
       const thumbnailTag = event.tags.find(t => t[0] === 'thumbnail');
@@ -2026,11 +1489,9 @@
     // Function to open collection
     async function openCollection(event) {
       // Update URL
-      const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
       const collectionNameTag = event.tags.find(t => t[0] === 't');
       const collectionName = collectionNameTag ? collectionNameTag[1] : 'collection';
-      const pageUrl = pageUrlTag ? pageUrlTag[1] : encodeURIComponent(collectionName);
-      const url = `/art/${pageUrl}`;
+      const url = `/art/${encodeURIComponent(collectionName)}`;
       history.pushState({}, '', url);
 
       // Hide main content
@@ -2040,41 +1501,16 @@
       collectionView.style.display = 'flex';
 
       // Set collection title
-      const pageTitleTag = event.tags.find(t => t[0] === 'pageTitle');
-      collectionTitle.textContent = pageTitleTag ? pageTitleTag[1] : collectionName;
-
-      // Set about section
-      const aboutTag = event.tags.find(t => t[0] === 'about');
-      collectionAboutSection.textContent = aboutTag ? aboutTag[1] : '';
-      if (aboutTag) {
-        collectionAboutSection.style.display = 'block';
-      } else {
-        collectionAboutSection.style.display = 'none';
-      }
+      collectionTitle.textContent = collectionName;
 
       // Set author info
       const authorProfile = await fetchAuthorProfile(event.pubkey);
       collectionAuthor.innerHTML = `
         <div class="collection-author">
           <img src="${authorProfile.picture || 'default-profile.png'}" alt="Author">
-          <span>${authorProfile.name || 'Anonymous'}</span>
+          <span>${authorProfile.nip05 || 'Anonymous'}</span>
         </div>
       `;
-
-      // Apply customizations
-      const textColorTag = event.tags.find(t => t[0] === 'textColor');
-      const backgroundColorTag = event.tags.find(t => t[0] === 'backgroundColor');
-      const buttonColorTag = event.tags.find(t => t[0] === 'buttonColor');
-
-      // Apply custom styles
-      if (textColorTag || backgroundColorTag || buttonColorTag) {
-        document.documentElement.style.setProperty('--custom-text-color', textColorTag ? textColorTag[1] : '#ffffff');
-        document.documentElement.style.setProperty('--custom-background-color', backgroundColorTag ? backgroundColorTag[1] : '#121212');
-        document.documentElement.style.setProperty('--custom-button-color', buttonColorTag ? buttonColorTag[1] : '#333333');
-        collectionView.classList.add('customized');
-      } else {
-        collectionView.classList.remove('customized');
-      }
 
       // Display media in grid
       collectionGrid.innerHTML = '';
@@ -2104,15 +1540,6 @@
 
         collectionGrid.appendChild(mediaElement);
       });
-
-      // Store the current collection's event ID
-      currentCollectionEventId = event.id;
-
-      // Initialize chat
-      initializeChat();
-
-      // Fetch existing messages for this collection
-      fetchChatMessages();
     }
 
     // Function to open media in fullscreen
@@ -2149,21 +1576,12 @@
 
     // Function to fetch author profile
     async function fetchAuthorProfile(pubkey) {
-      // Use a cache to prevent multiple requests for the same profile
-      if (!fetchAuthorProfile.cache) {
-        fetchAuthorProfile.cache = {};
-      }
-
-      if (fetchAuthorProfile.cache[pubkey]) {
-        return fetchAuthorProfile.cache[pubkey];
-      }
-
       return new Promise((resolve) => {
         const tempRelay = new WebSocket('wss://relay.damus.io');
         tempRelay.onopen = () => {
           const request = JSON.stringify([
             "REQ",
-            "profile-" + pubkey,
+            "profile",
             {
               kinds: [0],
               authors: [pubkey]
@@ -2175,138 +1593,10 @@
           const response = JSON.parse(event.data);
           if (response && response[2]) {
             const profile = JSON.parse(response[2].content);
-            fetchAuthorProfile.cache[pubkey] = profile;
             resolve(profile);
             tempRelay.close();
           }
         };
-      });
-    }
-
-    // Function to initialize chat
-    function initializeChat() {
-      if (!publicKey) {
-        // If the user is not logged in, hide the chat input
-        chatInput.disabled = true;
-        sendChatButton.disabled = true;
-        chatInput.placeholder = 'Please log in to send messages.';
-      } else {
-        chatInput.disabled = false;
-        sendChatButton.disabled = false;
-        chatInput.placeholder = 'Type your message here...';
-      }
-    }
-
-    // Event listener for sending chat messages
-    sendChatButton.addEventListener('click', async () => {
-      const message = chatInput.value.trim();
-      if (!message) {
-        showToast('Please enter a message.');
-        return;
-      }
-
-      // Prepare the event
-      const event = {
-        kind: 1, // Kind 1 for short text note
-        pubkey: publicKey,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [['e', currentCollectionEventId]],
-        content: message,
-      };
-
-      // Sign and send the event
-      try {
-        await signAndSendEvent(event);
-        chatInput.value = '';
-        showToast('Message sent.');
-
-        // Append the new message to the chat
-        displayChatMessage(event, userProfile);
-      } catch (error) {
-        console.error('Error sending message:', error);
-        showToast('Failed to send message. Please try again.');
-      }
-    });
-
-    // Function to fetch chat messages for the current collection
-    function fetchChatMessages() {
-      chatMessages.innerHTML = '';
-
-      const subscriptionId = 'chat-' + Math.random().toString(36).substring(2);
-      const request = [
-        'REQ',
-        subscriptionId,
-        {
-          kinds: [1], // Kind 1 events
-          '#e': [currentCollectionEventId], // Filter by 'e' tag referencing the collection
-        },
-      ];
-      relay.send(JSON.stringify(request));
-
-      relaySubscriptions[subscriptionId] = async (messageEvent) => {
-        const authorProfile = await fetchAuthorProfile(messageEvent.pubkey);
-        displayChatMessage(messageEvent, authorProfile);
-      };
-    }
-
-    // Function to display a chat message
-    function displayChatMessage(messageEvent, authorProfile) {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add('chat-message');
-
-      // Author Image
-      const authorImg = document.createElement('img');
-      authorImg.src = authorProfile.picture || 'default-profile.png';
-      authorImg.alt = 'Author';
-      authorImg.classList.add('author-img');
-
-      // Message Content
-      const messageContent = document.createElement('div');
-      messageContent.classList.add('chat-message-content');
-
-      // Author Name
-      const authorName = document.createElement('strong');
-      authorName.textContent = authorProfile.name || 'Anonymous';
-      messageContent.appendChild(authorName);
-
-      // Message Text
-      const content = document.createElement('p');
-      // Render content, including images if present
-      renderMessageContent(content, messageEvent.content);
-      messageContent.appendChild(content);
-
-      messageDiv.appendChild(authorImg);
-      messageDiv.appendChild(messageContent);
-
-      chatMessages.appendChild(messageDiv);
-    }
-
-    // Function to render message content with media files
-    function renderMessageContent(container, content) {
-      // Check for image URLs and render them as images
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const parts = content.split(urlRegex);
-
-      parts.forEach((part) => {
-        if (urlRegex.test(part)) {
-          const url = part;
-          if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-            const img = document.createElement('img');
-            img.src = url;
-            img.style.maxWidth = '200px';
-            img.style.borderRadius = 'var(--border-radius)';
-            container.appendChild(img);
-          } else {
-            const link = document.createElement('a');
-            link.href = url;
-            link.textContent = url;
-            link.style.color = 'var(--link-color)';
-            link.target = '_blank';
-            container.appendChild(link);
-          }
-        } else {
-          container.appendChild(document.createTextNode(part));
-        }
       });
     }
 
@@ -2322,11 +1612,11 @@
     window.onpopstate = function(event) {
       const path = window.location.pathname;
       if (path.startsWith('/art/')) {
-        // Find collection by page URL
-        const pageUrl = decodeURIComponent(path.split('/art/')[1]);
+        // Find collection by name
+        const collectionName = decodeURIComponent(path.split('/art/')[1]);
         const collection = collections.find(event => {
-          const pageUrlTag = event.tags.find(t => t[0] === 'pageUrl');
-          return pageUrlTag && pageUrlTag[1] === pageUrl;
+          const nameTag = event.tags.find(t => t[0] === 't');
+          return nameTag && nameTag[1] === collectionName;
         });
         if (collection) {
           openCollection(collection);
@@ -2353,5 +1643,6 @@
       }
     };
   </script>
+
 </body>
 </html>
